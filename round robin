@@ -1,0 +1,75 @@
+#include <stdio.h>
+
+typedef struct {
+    int pid;
+    int at;
+    int bt;
+    int rem_bt;
+    int ct;
+} Process;
+
+int main() {
+    int n, tq;
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    Process p[n];
+    for(int i = 0; i < n; i++) {
+        p[i].pid = i + 1;
+        printf("Enter arrival time of P%d: ", i+1);
+        scanf("%d", &p[i].at);
+        printf("Enter burst time of P%d: ", i+1);
+        scanf("%d", &p[i].bt);
+        p[i].rem_bt = p[i].bt;
+        p[i].ct = 0;
+    }
+
+    printf("Enter time quantum: ");
+    scanf("%d", &tq);
+
+    int t = 0, done = 0;
+    int queue[100], front = 0, rear = 0, in_queue[100] = {0};
+
+    while(done < n) {
+        for(int i = 0; i < n; i++) {
+            if(p[i].at <= t && p[i].rem_bt > 0 && !in_queue[i]) {
+                queue[rear++] = i;
+                in_queue[i] = 1;
+            }
+        }
+
+        if(front == rear) {
+            t++;
+            continue;
+        }
+
+        int idx = queue[front++];
+        int exec = p[idx].rem_bt < tq ? p[idx].rem_bt : tq;
+        printf("P%d(%d->%d) ", p[idx].pid, t, t + exec);
+        t += exec;
+        p[idx].rem_bt -= exec;
+
+        for(int i = 0; i < n; i++) {
+            if(p[i].at <= t && p[i].rem_bt > 0 && !in_queue[i]) {
+                queue[rear++] = i;
+                in_queue[i] = 1;
+            }
+        }
+
+        if(p[idx].rem_bt > 0) {
+            queue[rear++] = idx;
+        } else {
+            p[idx].ct = t;
+            done++;
+        }
+    }
+
+    printf("\n\nProcess\tAT\tBT\tCT\tTAT\tWT\n");
+    for(int i = 0; i < n; i++) {
+        int tat = p[i].ct - p[i].at;
+        int wt = tat - p[i].bt;
+        printf("P%d\t%d\t%d\t%d\t%d\t%d\n", p[i].pid, p[i].at, p[i].bt, p[i].ct, tat, wt);
+    }
+
+    return 0;
+ 
